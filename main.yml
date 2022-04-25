@@ -1,0 +1,62 @@
+---
+- name: "Creating a docker image and uploading to docker hub"
+  become: true
+  hosts: localhost
+  connection: local
+  vars:
+    version: "1"
+    user: "ec2-user"
+    docker_user: "nikhiljojo08"
+    docker_password: "<Enter your password>"
+    img_name: "nikhiljojo08/version"
+
+  tasks:
+    - name: "Install Docker"
+      yum:
+        name:
+          - docker
+          - python2-pip
+        state: latest
+
+    - name: "Installing Docker client"
+      pip:
+        name: docker-py
+        state: present
+
+    - name: "Adding user ec2-user to group docker"
+      user:
+        name: "{{ user }}"
+        group: docker
+        append: yes
+
+    - name: "Restarting/Enabling docker service"
+      service:
+        name: docker
+        state: restarted
+        enabled: true
+
+    - name: "Login to dockerhub"
+      docker_login:
+        username: "{{ docker_user }}"
+        password: "{{ docker_password }}"
+
+    - name: " Creating docker image "
+      docker_image:
+        build:
+          path: ./
+        name: "{{ img_name }}{{ version }}"
+        tag: "{{ item }}"
+        source: build
+        push: yes
+      with_items:
+        - "{{ version }}"
+        - latest
+
+    - name: "Creatin Docker container from created image"
+      docker_container:
+        name: webserver
+        image: "{{ img_name }}{{ version }}"
+        recreate: true
+        state: started
+        ports:
+          - "80:80"
