@@ -7,7 +7,7 @@
     version: "1"
     user: "ec2-user"
     docker_user: "nikhiljojo08"
-    docker_password: "<Enter your password>"
+    docker_password: "<Enter your Docker account password>"
     img_name: "nikhiljojo08/version"
 
   tasks:
